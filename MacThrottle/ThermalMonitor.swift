@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import UserNotifications
 
 enum ThermalPressure: String, Codable {
@@ -36,6 +37,16 @@ enum ThermalPressure: String, Codable {
             return true
         default:
             return false
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .nominal: return .green
+        case .moderate: return .yellow
+        case .heavy: return .orange
+        case .trapping, .sleeping: return .red
+        case .unknown: return .gray
         }
     }
 }
