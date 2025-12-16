@@ -5,6 +5,11 @@ xcuserdata/
 # Build artifacts
 DerivedData/
 build/
+release/
 
 # macOS
 .DS_Store
+
+# Node.js (for semantic-release)
+node_modules/
+package-lock.json
