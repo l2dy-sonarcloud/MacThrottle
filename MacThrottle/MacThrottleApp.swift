@@ -18,6 +18,8 @@ struct MenuBarIcon: View {
 
     var body: some View {
         Image(systemName: iconName)
+            .symbolRenderingMode(.palette)
+            .foregroundStyle(fillColor, .primary)
     }
 
     private var iconName: String {
@@ -27,6 +29,16 @@ struct MenuBarIcon: View {
         case .heavy: return "thermometer.high"
         case .trapping, .sleeping: return "thermometer.sun.fill"
         case .unknown: return "thermometer.variable.and.figure"
+        }
+    }
+
+    private var fillColor: Color {
+        switch pressure {
+        case .nominal: return .green
+        case .moderate: return .yellow
+        case .heavy: return .orange
+        case .trapping, .sleeping: return .red
+        case .unknown: return .gray
         }
     }
 }
