@@ -1,0 +1,211 @@
+import Foundation
+import IOKit
+
+// MARK: - SMC Temperature Reader
+// SMC approach based on https://github.com/exelban/stats (MIT License)
+
+private typealias SMCBytes = (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
+                              UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
+                              UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
+                              UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
+                              UInt8, UInt8, UInt8, UInt8)
+
+private struct SMCKeyData {
+    struct KeyInfo {
+        var dataSize: IOByteCount32 = 0
+        var dataType: UInt32 = 0
+        var dataAttributes: UInt8 = 0
+    }
+
+    var key: UInt32 = 0
+    var vers: (UInt8, UInt8, UInt8, UInt8, UInt16) = (0, 0, 0, 0, 0)
+    var pLimitData: (UInt16, UInt16, UInt32, UInt32, UInt32) = (0, 0, 0, 0, 0)
+    var keyInfo = KeyInfo()
+    var padding: UInt16 = 0
+    var result: UInt8 = 0
+    var status: UInt8 = 0
+    var data8: UInt8 = 0
+    var data32: UInt32 = 0
+    var bytes: SMCBytes = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+
+private extension FourCharCode {
+    init(fromString str: String) {
+        precondition(str.count == 4)
+        self = str.utf8.reduce(0) { sum, character in
+            return sum << 8 | UInt32(character)
+        }
+    }
+}
+
+final class SMCReader {
+    static let shared = SMCReader()
+
+    private var conn: io_connect_t = 0
+    private var isConnected = false
+
+    // CPU performance core temperature keys by chip generation
+    private let m1Keys = ["Tp01", "Tp05", "Tp09", "Tp0D", "Tp0H", "Tp0L", "Tp0P", "Tp0X", "Tp0b"]
+    private let m2Keys = ["Tp01", "Tp05", "Tp09", "Tp0D", "Tp0X", "Tp0b", "Tp0f", "Tp0j"]
+    private let m3Keys = ["Tf04", "Tf09", "Tf0A", "Tf0B", "Tf0D", "Tf0E", "Tf44", "Tf49", "Tf4A", "Tf4B"]
+
+    private init() {
+        connect()
+    }
+
+    deinit {
+        if isConnected {
+            IOServiceClose(conn)
+        }
+    }
+
+    private func connect() {
+        guard let matchingDict = IOServiceMatching("AppleSMC") else { return }
+
+        var iterator: io_iterator_t = 0
+        let result = IOServiceGetMatchingServices(kIOMainPortDefault, matchingDict, &iterator)
+        guard result == kIOReturnSuccess else { return }
+
+        let device = IOIteratorNext(iterator)
+        IOObjectRelease(iterator)
+        guard device != 0 else { return }
+
+        let openResult = IOServiceOpen(device, mach_task_self_, 0, &conn)
+        IOObjectRelease(device)
+
+        isConnected = (openResult == kIOReturnSuccess)
+    }
+
+    func readCPUTemperature() -> Double? {
+        guard isConnected else { return nil }
+
+        var maxTemp: Double = 0
+
+        let allKeys = m1Keys + m2Keys + m3Keys
+        for key in allKeys {
+            if let temp = readTemperature(key: key), temp > maxTemp && temp < 150 {
+                maxTemp = temp
+            }
+        }
+
+        return maxTemp > 0 ? maxTemp : nil
+    }
+
+    private func readTemperature(key: String) -> Double? {
+        var input = SMCKeyData()
+        var output = SMCKeyData()
+
+        input.key = FourCharCode(fromString: key)
+        input.data8 = 9 // kSMCReadKeyInfo
+
+        guard call(input: &input, output: &output) == kIOReturnSuccess else { return nil }
+
+        let dataSize = output.keyInfo.dataSize
+        guard dataSize > 0 else { return nil }
+
+        input.keyInfo.dataSize = dataSize
+        input.data8 = 5 // kSMCReadBytes
+
+        guard call(input: &input, output: &output) == kIOReturnSuccess else { return nil }
+
+        let b0 = output.bytes.0
+        let b1 = output.bytes.1
+        let b2 = output.bytes.2
+        let b3 = output.bytes.3
+
+        var value: Double = 0
+
+        if dataSize == 4 {
+            // Float format (flt) - Apple Silicon
+            let bytes = [b0, b1, b2, b3]
+            value = Double(bytes.withUnsafeBytes { $0.load(as: Float.self) })
+        } else if dataSize == 2 {
+            // sp78 format (signed 8.8 fixed point) - Intel Macs
+            let intValue = Double(Int16(bitPattern: UInt16(b0) << 8 | UInt16(b1)))
+            value = intValue / 256.0
+        }
+
+        return value > 0 && value < 150 ? value : nil
+    }
+
+    private func call(input: inout SMCKeyData, output: inout SMCKeyData) -> kern_return_t {
+        let inputSize = MemoryLayout<SMCKeyData>.stride
+        var outputSize = MemoryLayout<SMCKeyData>.stride
+
+        return IOConnectCallStructMethod(conn, 2, &input, inputSize, &output, &outputSize)
+    }
+}
+
+// MARK: - HID Temperature Reader (fallback, lazy initialized)
+
+final class HIDTemperatureReader {
+    private typealias IOHIDEventSystemClientRef = OpaquePointer
+    private typealias IOHIDServiceClientRef = OpaquePointer
+    private typealias IOHIDEventRef = OpaquePointer
+
+    private typealias CreateFunc = @convention(c) (CFAllocator?) -> IOHIDEventSystemClientRef?
+    private typealias SetMatchingFunc = @convention(c) (IOHIDEventSystemClientRef, CFDictionary?) -> Void
+    private typealias CopyServicesFunc = @convention(c) (IOHIDEventSystemClientRef) -> CFArray?
+    private typealias CopyEventFunc = @convention(c) (IOHIDServiceClientRef, Int64, Int32, Int64) -> IOHIDEventRef?
+    private typealias GetFloatValueFunc = @convention(c) (IOHIDEventRef, UInt32) -> Double
+
+    private var create: CreateFunc?
+    private var setMatching: SetMatchingFunc?
+    private var copyServices: CopyServicesFunc?
+    private var copyEvent: CopyEventFunc?
+    private var getFloatValue: GetFloatValueFunc?
+    private var isInitialized = false
+
+    private let kIOHIDEventTypeTemperature: Int64 = 15
+    private let kIOHIDEventFieldTemperatureLevel: UInt32 = 0xf0000
+
+    static let shared = HIDTemperatureReader()
+
+    private init() {}
+
+    private func ensureInitialized() {
+        guard !isInitialized else { return }
+        isInitialized = true
+
+        guard let handle = dlopen(nil, RTLD_NOW) else { return }
+
+        create = unsafeBitCast(dlsym(handle, "IOHIDEventSystemClientCreate"), to: CreateFunc?.self)
+        setMatching = unsafeBitCast(dlsym(handle, "IOHIDEventSystemClientSetMatching"), to: SetMatchingFunc?.self)
+        copyServices = unsafeBitCast(dlsym(handle, "IOHIDEventSystemClientCopyServices"), to: CopyServicesFunc?.self)
+        copyEvent = unsafeBitCast(dlsym(handle, "IOHIDServiceClientCopyEvent"), to: CopyEventFunc?.self)
+        getFloatValue = unsafeBitCast(dlsym(handle, "IOHIDEventGetFloatValue"), to: GetFloatValueFunc?.self)
+    }
+
+    /// Returns the maximum CPU die temperature (PMU tdie sensors)
+    func readCPUTemperature() -> Double? {
+        ensureInitialized()
+
+        guard let create, let setMatching, let copyServices, let copyEvent, let getFloatValue else {
+            return nil
+        }
+
+        guard let client = create(kCFAllocatorDefault) else { return nil }
+
+        let matching: [String: Any] = ["PrimaryUsagePage": 0xff00, "PrimaryUsage": 5]
+        setMatching(client, matching as CFDictionary)
+
+        guard let services = copyServices(client) else { return nil }
+
+        var maxTemp: Double = 0
+        let count = CFArrayGetCount(services)
+
+        for i in 0..<count {
+            let service = unsafeBitCast(CFArrayGetValueAtIndex(services, i), to: IOHIDServiceClientRef.self)
+
+            if let event = copyEvent(service, kIOHIDEventTypeTemperature, 0, 0) {
+                let temp = getFloatValue(event, kIOHIDEventFieldTemperatureLevel)
+                if temp > maxTemp && temp < 150 {
+                    maxTemp = temp
+                }
+            }
+        }
+
+        return maxTemp > 0 ? maxTemp : nil
+    }
+}

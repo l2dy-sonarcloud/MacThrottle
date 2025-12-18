@@ -2,6 +2,8 @@ import Foundation
 import SwiftUI
 import UserNotifications
 
+// MARK: - Models
+
 enum ThermalPressure: String, Codable {
     case nominal
     case moderate
@@ -50,14 +52,23 @@ struct ThermalState: Codable {
     }
 }
 
+struct HistoryEntry {
+    let pressure: ThermalPressure
+    let temperature: Double?
+    let timestamp: Date
+}
+
 @Observable
 final class ThermalMonitor {
     private(set) var pressure: ThermalPressure = .unknown
+    private(set) var temperature: Double?
     private(set) var daemonRunning: Bool = false
+    private(set) var history: [HistoryEntry] = []
     private var timer: Timer?
     private var previousPressure: ThermalPressure = .unknown
 
     private let stateFilePath = "/tmp/mac-throttle-thermal-state"
+    private let historyDuration: TimeInterval = 3600 // 1 hour
 
     // Notification settings
     var notifyOnHeavy: Bool = UserDefaults.standard.object(forKey: "notifyOnHeavy") as? Bool ?? true {
@@ -74,6 +85,34 @@ final class ThermalMonitor {
 
     var notificationSound: Bool = UserDefaults.standard.object(forKey: "notificationSound") as? Bool ?? false {
         didSet { UserDefaults.standard.set(notificationSound, forKey: "notificationSound") }
+    }
+
+    var timeInEachState: [(pressure: ThermalPressure, duration: TimeInterval)] {
+        guard history.count >= 2 else { return [] }
+
+        var durations: [ThermalPressure: TimeInterval] = [:]
+
+        for i in 0..<(history.count - 1) {
+            let current = history[i]
+            let next = history[i + 1]
+            let duration = next.timestamp.timeIntervalSince(current.timestamp)
+            durations[current.pressure, default: 0] += duration
+        }
+
+        // Add time for the current (last) state up to now
+        if let last = history.last {
+            let duration = Date().timeIntervalSince(last.timestamp)
+            durations[last.pressure, default: 0] += duration
+        }
+
+        // Sort by duration descending
+        return durations.map { (pressure: $0.key, duration: $0.value) }
+            .sorted { $0.duration > $1.duration }
+    }
+
+    var totalHistoryDuration: TimeInterval {
+        guard let first = history.first else { return 0 }
+        return Date().timeIntervalSince(first.timestamp)
     }
 
     init() {
@@ -124,6 +163,18 @@ final class ThermalMonitor {
         }
 
         pressure = newPressure
+
+        // Read CPU temperature (SMC primary, HID fallback)
+        temperature = SMCReader.shared.readCPUTemperature()
+            ?? HIDTemperatureReader.shared.readCPUTemperature()
+
+        // Record history
+        let entry = HistoryEntry(pressure: newPressure, temperature: temperature, timestamp: Date())
+        history.append(entry)
+
+        // Trim old entries (keep last hour)
+        let cutoff = Date().addingTimeInterval(-historyDuration)
+        history.removeAll { $0.timestamp < cutoff }
     }
 
     private func shouldNotify(for pressure: ThermalPressure, previous: ThermalPressure) -> Bool {
