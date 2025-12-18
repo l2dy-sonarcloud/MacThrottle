@@ -10,7 +10,7 @@ final class ThermalMonitor {
     private var timer: Timer?
     private var previousPressure: ThermalPressure = .unknown
 
-    private let historyDuration: TimeInterval = 3600 // 1 hour
+    private let historyDuration: TimeInterval = 600 // 10 minutes
 
     // Notification settings
     var notifyOnHeavy: Bool = UserDefaults.standard.object(forKey: "notifyOnHeavy") as? Bool ?? true {
@@ -103,7 +103,7 @@ final class ThermalMonitor {
         let entry = HistoryEntry(pressure: newPressure, temperature: temperature, timestamp: Date())
         history.append(entry)
 
-        // Trim old entries (keep last hour)
+        // Trim old entries
         let cutoff = Date().addingTimeInterval(-historyDuration)
         history.removeAll { $0.timestamp < cutoff }
     }

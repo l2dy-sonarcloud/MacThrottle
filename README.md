@@ -8,7 +8,7 @@ A macOS menu bar app that monitors thermal pressure and alerts you when your Mac
 
 - Displays thermal pressure state in the menu bar using different thermometer icons
 - Shows CPU core temperature (reads directly from SMC)
-- History graph showing thermal state and temperature over the last hour
+- History graph showing thermal state and temperature over the last 10 minutes
 - Statistics showing time spent in each thermal state
 - Configurable notifications:
   - When heavy throttling begins
