@@ -40,15 +40,6 @@ enum ThermalPressure: String, Codable {
     }
 }
 
-struct ThermalState: Codable {
-    let pressure: String
-    let timestamp: Int
-
-    var thermalPressure: ThermalPressure {
-        ThermalPressure(rawValue: pressure) ?? .unknown
-    }
-}
-
 struct HistoryEntry {
     let pressure: ThermalPressure
     let temperature: Double?

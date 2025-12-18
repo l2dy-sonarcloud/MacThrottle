@@ -6,12 +6,10 @@ import UserNotifications
 final class ThermalMonitor {
     private(set) var pressure: ThermalPressure = .unknown
     private(set) var temperature: Double?
-    private(set) var daemonRunning: Bool = false
     private(set) var history: [HistoryEntry] = []
     private var timer: Timer?
     private var previousPressure: ThermalPressure = .unknown
 
-    private let stateFilePath = "/tmp/mac-throttle-thermal-state"
     private let historyDuration: TimeInterval = 3600 // 1 hour
 
     // Notification settings
@@ -78,18 +76,7 @@ final class ThermalMonitor {
     }
 
     private func updateThermalState() {
-        guard let data = FileManager.default.contents(atPath: stateFilePath),
-              let state = try? JSONDecoder().decode(ThermalState.self, from: data) else {
-            daemonRunning = false
-            pressure = .unknown
-            return
-        }
-
-        // Check if data is fresh (within last 15 seconds)
-        let now = Int(Date().timeIntervalSince1970)
-        daemonRunning = (now - state.timestamp) < 15
-
-        let newPressure = state.thermalPressure
+        let newPressure = ThermalPressureReader.shared.readPressure() ?? .unknown
 
         if newPressure != previousPressure {
             // Check for throttling notifications
