@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/angristan/MacThrottle/compare/v1.2.3...v1.3.0) (2025-12-18)
+
+
+### Features
+
+* adopt Liquid Glass design and update to macOS 26 / Swift 6 ([d3bdcc3](https://github.com/angristan/MacThrottle/commit/d3bdcc36c47509846602cd5b9a188b594fd0a4b2))
+
 ## [1.2.3](https://github.com/angristan/MacThrottle/compare/v1.2.2...v1.2.3) (2025-12-18)
 
 
