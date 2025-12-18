@@ -32,6 +32,7 @@
 		A1000021229E8F1100000001 /* MenuBarIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarIcon.swift; sourceTree = "<group>"; };
 		A1000023229E8F1100000001 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		A1000028229E8F1100000001 /* ThermalPressureReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermalPressureReader.swift; sourceTree = "<group>"; };
+		A100002A229E8F1100000001 /* MacThrottle.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MacThrottle.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +63,7 @@
 				A1000027229E8F1100000001 /* Services */,
 				A1000016229E8F1100000001 /* Assets.xcassets */,
 				A1000006229E8F1100000001 /* Info.plist */,
+				A100002A229E8F1100000001 /* MacThrottle.entitlements */,
 			);
 			path = MacThrottle;
 			sourceTree = "<group>";
@@ -312,7 +314,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_ENTITLEMENTS = MacThrottle/MacThrottle.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 122;
@@ -340,7 +342,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_ENTITLEMENTS = MacThrottle/MacThrottle.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 122;

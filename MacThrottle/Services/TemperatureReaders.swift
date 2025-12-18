@@ -130,7 +130,7 @@ final class SMCReader {
             value = intValue / 256.0
         }
 
-        return value > 0 && value < 150 ? value : nil
+        return value > 20 && value < 150 ? value : nil
     }
 
     private func call(input: inout SMCKeyData, output: inout SMCKeyData) -> kern_return_t {
