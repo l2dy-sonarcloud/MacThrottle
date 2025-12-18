@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/angristan/MacThrottle/compare/v1.3.0...v1.4.0) (2025-12-18)
+
+
+### Features
+
+* add Launch at Login toggle ([ec9fd6c](https://github.com/angristan/MacThrottle/commit/ec9fd6c2489c153cd70da6d847eb6acb61d83e4a))
+
 # [1.3.0](https://github.com/angristan/MacThrottle/compare/v1.2.3...v1.3.0) (2025-12-18)
 
 
