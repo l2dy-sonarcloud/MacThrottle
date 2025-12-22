@@ -8,7 +8,8 @@ A macOS menu bar app that monitors thermal pressure and alerts you when your Mac
 
 - Displays thermal pressure state in the menu bar using different thermometer icons
 - Shows CPU core temperature (reads directly from SMC)
-- History graph showing thermal state and temperature over the last 10 minutes
+- Shows fan speed percentage (on Macs with fans)
+- History graph showing thermal state, temperature, and fan speed over the last 10 minutes
 - Statistics showing time spent in each thermal state
 - Configurable notifications:
   - When heavy throttling begins
@@ -100,6 +101,12 @@ If SMC reading fails, MacThrottle falls back to the **IOHIDEventSystem** private
 - May report slightly different (typically lower) values than SMC
 
 The displayed temperature is the maximum reading across all available CPU sensors.
+
+### Fan Speed
+
+On Macs with fans, MacThrottle reads fan speed from the SMC using standard fan keys (`FNum` for count, `F0Ac`/`F1Ac` for actual RPM, `F0Mx`/`F1Mx` for maximum RPM). The speed is displayed as a percentage of maximum capacity and shown as a dashed cyan line on the history graph.
+
+Fanless Macs (like MacBook Air) won't show fan data or the "Show Fan Speed" toggle.
 
 ## Requirements
 
