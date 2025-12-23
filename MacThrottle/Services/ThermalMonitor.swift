@@ -4,6 +4,11 @@ import UserNotifications
 
 @Observable
 final class ThermalMonitor {
+    // MARK: - Constants
+    private static let historyDurationSeconds: TimeInterval = 600  // 10 minutes
+    private static let pollIntervalSeconds: TimeInterval = 2.0
+
+    // MARK: - State
     private(set) var pressure: ThermalPressure = .unknown
     private(set) var temperature: Double?
     private(set) var fanSpeed: Double?  // Percentage 0-100%
@@ -11,8 +16,6 @@ final class ThermalMonitor {
     private(set) var history: [HistoryEntry] = []
     private var timer: Timer?
     private var previousPressure: ThermalPressure = .unknown
-
-    private let historyDuration: TimeInterval = 600 // 10 minutes
 
     // Notification settings
     var notifyOnHeavy: Bool = UserDefaults.standard.object(forKey: "notifyOnHeavy") as? Bool ?? true {
@@ -77,7 +80,7 @@ final class ThermalMonitor {
         // Initial read
         updateThermalState()
 
-        timer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+        timer = Timer.scheduledTimer(withTimeInterval: Self.pollIntervalSeconds, repeats: true) { [weak self] _ in
             self?.updateThermalState()
         }
     }
@@ -122,7 +125,7 @@ final class ThermalMonitor {
         history.append(entry)
 
         // Trim old entries
-        let cutoff = Date().addingTimeInterval(-historyDuration)
+        let cutoff = Date().addingTimeInterval(-Self.historyDurationSeconds)
         history.removeAll { $0.timestamp < cutoff }
     }
 

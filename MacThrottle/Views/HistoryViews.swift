@@ -8,11 +8,16 @@ private struct WidthPreferenceKey: PreferenceKey {
 }
 
 struct HistoryGraphView: View {
+    // MARK: - Constants
+    private static let maxPoints = 300
+    private static let minTemperatureBound: Double = 30
+    private static let maxTemperatureBound: Double = 110
+    private static let temperaturePadding: Double = 5
+
+    // MARK: - Properties
     let history: [HistoryEntry]
     var showFanSpeed: Bool = true
     @State private var hoverLocation: CGPoint?
-
-    private let maxPoints = 300
 
     private var historyDuration: TimeInterval {
         guard let first = history.first else { return 0 }
@@ -20,13 +25,13 @@ struct HistoryGraphView: View {
     }
 
     private var downsampledHistory: [HistoryEntry] {
-        guard history.count > maxPoints else { return history }
+        guard history.count > Self.maxPoints else { return history }
 
-        let step = Double(history.count) / Double(maxPoints)
+        let step = Double(history.count) / Double(Self.maxPoints)
         var result: [HistoryEntry] = []
-        result.reserveCapacity(maxPoints)
+        result.reserveCapacity(Self.maxPoints)
 
-        for i in 0..<maxPoints {
+        for i in 0..<Self.maxPoints {
             let index = min(Int(Double(i) * step), history.count - 1)
             result.append(history[index])
         }
@@ -40,9 +45,9 @@ struct HistoryGraphView: View {
 
     private var temperatureRange: (min: Double, max: Double) {
         let temps = downsampledHistory.compactMap { $0.temperature }
-        guard !temps.isEmpty else { return (30, 100) }
-        let minTemp = max(30, (temps.min() ?? 30) - 5)
-        let maxTemp = min(110, (temps.max() ?? 100) + 5)
+        guard !temps.isEmpty else { return (Self.minTemperatureBound, 100) }
+        let minTemp = max(Self.minTemperatureBound, (temps.min() ?? Self.minTemperatureBound) - Self.temperaturePadding)
+        let maxTemp = min(Self.maxTemperatureBound, (temps.max() ?? 100) + Self.temperaturePadding)
         return (minTemp, maxTemp)
     }
 
