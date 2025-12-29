@@ -1,3 +1,15 @@
+# [1.7.0](https://github.com/angristan/MacThrottle/compare/v1.6.1...v1.7.0) (2025-12-29)
+
+
+### Bug Fixes
+
+* disable swiftlint line_length for long setting ([fdb5996](https://github.com/angristan/MacThrottle/commit/fdb5996a3152f98d003efdfe0271d468141a8aac))
+
+
+### Features
+
+* add option to show temperature in menu bar ([658a1f7](https://github.com/angristan/MacThrottle/commit/658a1f79ce9e7b03aa999ca7736c2238e298dd6c)), closes [#8](https://github.com/angristan/MacThrottle/issues/8)
+
 ## [1.6.1](https://github.com/angristan/MacThrottle/compare/v1.6.0...v1.6.1) (2025-12-29)
 
 
