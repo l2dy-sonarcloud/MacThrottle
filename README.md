@@ -93,13 +93,15 @@ The `moderate` and `heavy` states both map to `fair` in `ProcessInfo.thermalStat
 
 ### Temperature Reading
 
-MacThrottle displays CPU temperature alongside thermal pressure using two methods:
+MacThrottle displays temperature alongside thermal pressure. Reported temperature is the maxmium of all CPU/GPU core temperatures.
+
+It's using two methods:
 
 #### SMC (Primary)
 
 The **System Management Controller (SMC)** is a hardware chip in every Mac that manages thermal sensors, fans, and power. MacThrottle reads directly from the SMC via IOKit to get actual CPU core temperatures.
 
-- Reads chip-specific sensor keys (different for M1, M2, M3)
+- Reads chip-specific sensor keys (different for M1, M2, M3, etc)
 - Provides accurate per-core temperature readings
 - Based on the approach used by [Stats](https://github.com/exelban/stats)
 

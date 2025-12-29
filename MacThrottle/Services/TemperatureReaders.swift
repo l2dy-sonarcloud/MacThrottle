@@ -2,7 +2,8 @@ import Foundation
 import IOKit
 
 // MARK: - SMC Temperature Reader
-// SMC approach based on https://github.com/exelban/stats (MIT License)
+// SMC approach based on https://github.com/exelban/stats/blob/master/SMC/
+// Sensors based on https://github.com/exelban/stats/tree/master/Modules/Sensors
 
 // swiftlint:disable:next large_tuple
 private typealias SMCBytes = (
@@ -54,10 +55,29 @@ final class SMCReader {
     private var conn: io_connect_t = 0
     private var isConnected = false
 
-    // CPU performance core temperature keys by chip generation
-    private let m1Keys = ["Tp01", "Tp05", "Tp09", "Tp0D", "Tp0H", "Tp0L", "Tp0P", "Tp0X", "Tp0b"]
-    private let m2Keys = ["Tp01", "Tp05", "Tp09", "Tp0D", "Tp0X", "Tp0b", "Tp0f", "Tp0j"]
-    private let m3Keys = ["Tf04", "Tf09", "Tf0A", "Tf0B", "Tf0D", "Tf0E", "Tf44", "Tf49", "Tf4A", "Tf4B"]
+    // CPU/GPU temperature keys by chip generation
+    // Source: https://github.com/exelban/stats/blob/a791a6c6a3840bcbe117690b8d3cff92179fc4aa/Modules/Sensors/values.swift#L329
+    private let m1Keys = [
+        "Tp09", "Tp0T",  // Efficiency CPU cores
+        "Tp01", "Tp05", "Tp0D", "Tp0H", "Tp0L", "Tp0P", "Tp0X", "Tp0b",  // Performance CPU cores
+        "Tg05", "Tg0D", "Tg0L", "Tg0T"  // GPU
+    ]
+    private let m2Keys = [
+        "Tp1h", "Tp1t", "Tp1p", "Tp1l",  // Efficiency CPU cores
+        "Tp01", "Tp05", "Tp09", "Tp0D", "Tp0X", "Tp0b", "Tp0f", "Tp0j",  // Performance CPU cores
+        "Tg0f", "Tg0j"  // GPU
+    ]
+    private let m3Keys = [
+        "Te05", "Te0L", "Te0P", "Te0S",  // Efficiency CPU cores
+        "Tf04", "Tf09", "Tf0A", "Tf0B", "Tf0D", "Tf0E",
+        "Tf44", "Tf49", "Tf4A", "Tf4B", "Tf4D", "Tf4E",  // Performance CPU cores
+        "Tf14", "Tf18", "Tf19", "Tf1A", "Tf24", "Tf28", "Tf29", "Tf2A"  // GPU
+    ]
+    private let m4Keys = [
+        "Te05", "Te0S", "Te09", "Te0H",  // Efficiency CPU cores
+        "Tp01", "Tp05", "Tp09", "Tp0D", "Tp0V", "Tp0Y", "Tp0b", "Tp0e",  // Performance CPU cores
+        "Tg0G", "Tg0H", "Tg1U", "Tg1k", "Tg0K", "Tg0L", "Tg0d", "Tg0e", "Tg0j", "Tg0k"  // GPU
+    ]
 
     // Cached fan count (0 = not yet read, -1 = no fans)
     private var cachedFanCount: Int?
@@ -94,7 +114,7 @@ final class SMCReader {
 
         var maxTemp: Double = 0
 
-        let allKeys = m1Keys + m2Keys + m3Keys
+        let allKeys = m1Keys + m2Keys + m3Keys + m4Keys
         for key in allKeys {
             if let temp = readTemperature(key: key), temp > maxTemp && temp < 150 {
                 maxTemp = temp
