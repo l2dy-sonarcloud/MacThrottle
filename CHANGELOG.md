@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/angristan/MacThrottle/compare/v1.6.0...v1.6.1) (2025-12-29)
+
+
+### Bug Fixes
+
+* snap hover indicator to nearest data point on graph ([dbb46b7](https://github.com/angristan/MacThrottle/commit/dbb46b784e44e7d324bc4b05575e4d840198000e))
+
 # [1.6.0](https://github.com/angristan/MacThrottle/compare/v1.5.2...v1.6.0) (2025-12-29)
 
 
