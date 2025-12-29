@@ -1,3 +1,15 @@
+# [1.6.0](https://github.com/angristan/MacThrottle/compare/v1.5.2...v1.6.0) (2025-12-29)
+
+
+### Bug Fixes
+
+* add SMC temperature keys for M1/M2 Pro/Max/Ultra chips ([25e2bc4](https://github.com/angristan/MacThrottle/commit/25e2bc4db037d90442cb9f7b0aa98e290ffe89f9)), closes [#7](https://github.com/angristan/MacThrottle/issues/7)
+
+
+### Features
+
+* show temperature source in tooltip ([df02add](https://github.com/angristan/MacThrottle/commit/df02add21a83c051246b2c308446e049f96687f1))
+
 ## [1.5.2](https://github.com/angristan/MacThrottle/compare/v1.5.1...v1.5.2) (2025-12-29)
 
 
