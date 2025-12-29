@@ -11,6 +11,7 @@ final class ThermalMonitor {
     // MARK: - State
     private(set) var pressure: ThermalPressure = .unknown
     private(set) var temperature: Double?
+    private(set) var temperatureSource: String?  // SMC key or "HID"
     private(set) var fanSpeed: Double?  // Percentage 0-100%
     private(set) var hasFans: Bool = false
     private(set) var history: [HistoryEntry] = []
@@ -106,8 +107,16 @@ final class ThermalMonitor {
         pressure = newPressure
 
         // Read CPU temperature (SMC primary, HID fallback)
-        temperature = SMCReader.shared.readCPUTemperature()
-            ?? HIDTemperatureReader.shared.readCPUTemperature()
+        if let smcReading = SMCReader.shared.readCPUTemperature() {
+            temperature = smcReading.value
+            temperatureSource = smcReading.source
+        } else if let hidReading = HIDTemperatureReader.shared.readCPUTemperature() {
+            temperature = hidReading.value
+            temperatureSource = hidReading.source
+        } else {
+            temperature = nil
+            temperatureSource = nil
+        }
 
         // Read fan speed
         if let fan = SMCReader.shared.readFanSpeed() {

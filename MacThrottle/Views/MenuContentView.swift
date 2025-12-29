@@ -25,6 +25,7 @@ struct MenuContentView: View {
                     Text("\(Int(temp.rounded()))°C")
                         .foregroundColor(colorForTemperature(temp))
                         .fontWeight(.semibold)
+                        .help("Source: \(monitor.temperatureSource ?? "Unknown")")
                 }
             }
             .font(.headline)

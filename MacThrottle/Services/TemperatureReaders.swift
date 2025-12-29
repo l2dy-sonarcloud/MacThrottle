@@ -49,6 +49,11 @@ struct FanSpeed {
     let percentage: Double  // 0-100%
 }
 
+struct TemperatureReading {
+    let value: Double
+    let source: String  // SMC key or "HID"
+}
+
 final class SMCReader {
     nonisolated(unsafe) static let shared = SMCReader()
 
@@ -121,19 +126,21 @@ final class SMCReader {
         isConnected = (openResult == kIOReturnSuccess)
     }
 
-    func readCPUTemperature() -> Double? {
+    func readCPUTemperature() -> TemperatureReading? {
         guard isConnected else { return nil }
 
         var maxTemp: Double = 0
+        var maxKey: String = ""
 
         let allKeys = m1Keys + mProMaxKeys + m2Keys + m3Keys + m4Keys
         for key in allKeys {
             if let temp = readTemperature(key: key), temp > maxTemp && temp < 150 {
                 maxTemp = temp
+                maxKey = key
             }
         }
 
-        return maxTemp > 0 ? maxTemp : nil
+        return maxTemp > 0 ? TemperatureReading(value: maxTemp, source: maxKey) : nil
     }
 
     /// Returns the average fan speed across all fans, or nil if no fans or reading failed
@@ -313,7 +320,7 @@ final class HIDTemperatureReader {
     }
 
     /// Returns the maximum CPU die temperature (PMU tdie sensors)
-    func readCPUTemperature() -> Double? {
+    func readCPUTemperature() -> TemperatureReading? {
         ensureInitialized()
 
         guard let create, let setMatching, let copyServices, let copyEvent, let getFloatValue else {
@@ -341,6 +348,6 @@ final class HIDTemperatureReader {
             }
         }
 
-        return maxTemp > 0 ? maxTemp : nil
+        return maxTemp > 0 ? TemperatureReading(value: maxTemp, source: "HID") : nil
     }
 }
