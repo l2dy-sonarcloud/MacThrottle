@@ -1,3 +1,10 @@
+## [1.7.2](https://github.com/angristan/MacThrottle/compare/v1.7.1...v1.7.2) (2025-12-30)
+
+
+### Bug Fixes
+
+* release HID resources to prevent leak ([d38efde](https://github.com/angristan/MacThrottle/commit/d38efde9b077c02cf921c851dec0fb1d7418d061)), closes [#9](https://github.com/angristan/MacThrottle/issues/9)
+
 ## [1.7.1](https://github.com/angristan/MacThrottle/compare/v1.7.0...v1.7.1) (2025-12-29)
 
 
