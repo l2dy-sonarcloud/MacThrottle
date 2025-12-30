@@ -123,4 +123,4 @@ Fanless Macs (like MacBook Air) won't show fan data or the "Show Fan Speed" togg
 
 ## Requirements
 
-- macOS 26.0+ (Tahoe)
+- macOS 15.0+ (Sequoia)
