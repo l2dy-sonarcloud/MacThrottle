@@ -53,7 +53,7 @@ struct MenuContentView: View {
 
             Toggle("Launch at Login", isOn: Binding(
                 get: { LaunchAtLoginManager.shared.isEnabled },
-                set: { LaunchAtLoginManager.shared.isEnabled = $0 }
+                set: { _ in LaunchAtLoginManager.shared.toggle() }
             ))
             .controlSize(.small)
 
