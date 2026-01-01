@@ -1,3 +1,10 @@
+## [1.7.3](https://github.com/angristan/MacThrottle/compare/v1.7.2...v1.7.3) (2026-01-01)
+
+
+### Bug Fixes
+
+* resolve UI latency when toggling Launch at Login ([ac88974](https://github.com/angristan/MacThrottle/commit/ac88974c3f32c7c9841b205442f387b41f7f2fc6)), closes [#16](https://github.com/angristan/MacThrottle/issues/16)
+
 ## [1.7.2](https://github.com/angristan/MacThrottle/compare/v1.7.1...v1.7.2) (2025-12-30)
 
 
